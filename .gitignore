@@ -1,0 +1,13 @@
+.env
+*.db
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+.DS_Store
+# Model weights and datasets live outside git
+*.pt
+*.pth
+*.onnx
+data/
