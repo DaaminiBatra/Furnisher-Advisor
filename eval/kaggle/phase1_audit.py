@@ -48,8 +48,13 @@ def download_ade(root: Path) -> Path:
     return target
 
 
+OBJECT_INFO_URL = "https://raw.githubusercontent.com/CSAILVision/sceneparsing/master/objectInfo150.csv"
+
+
 def load_ade_meta(ade: Path):
     names = {}  # idx -> list of synonyms
+    if not (ade / "objectInfo150.csv").exists():  # not shipped inside the zip
+        urllib.request.urlretrieve(OBJECT_INFO_URL, ade / "objectInfo150.csv")
     with open(ade / "objectInfo150.csv", newline="") as f:
         for row in csv.DictReader(f):
             names[int(row["Idx"])] = [s.strip() for s in row["Name"].split(";")]
