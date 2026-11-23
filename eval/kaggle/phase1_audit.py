@@ -81,7 +81,7 @@ def class_fractions(ann: np.ndarray, idx_names: dict[int, list[str]]) -> dict[st
 def load_v1_detector():
     import torch
 
-    model = torch.hub.load("ultralytics/yolov5", "yolov5x", pretrained=True)  # COCO, conf 0.25
+    model = torch.hub.load("ultralytics/yolov5", "yolov5x", pretrained=True, trust_repo=True)  # COCO, conf 0.25
     return model
 
 
