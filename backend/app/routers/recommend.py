@@ -33,7 +33,7 @@ class RecommendIn(BaseModel):
 
 @router.get("/rooms")
 def rooms() -> dict:
-    return {"rooms": sorted(ROOMS)}
+    return {"rooms": sorted(ROOMS), "items": {r: sorted(w) for r, w in ROOMS.items()}}
 
 
 @router.post("")
