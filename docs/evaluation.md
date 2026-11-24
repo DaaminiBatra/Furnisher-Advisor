@@ -123,3 +123,7 @@ not reported as accuracy because it measures agreement with the teacher, not wit
 
 Benchmark photos are not the same as user uploads, so these are benchmark numbers. Item
 presence uses a 0.5% pixel-area threshold. Labels have not yet been spot-checked by eye.
+
+## Model weights
+
+The distilled detector (`student_best.pt`, 22.5 MB) is stored in the Hugging Face model repo `daami/furnisher-advisor-detector` (private for now). `eval/kaggle/export_student.py` regenerates the upload from a training run.
