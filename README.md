@@ -21,12 +21,15 @@ photo: the real wall colour, the furniture already present, and what fits your b
 - **Shared room boards for group decisions.** Invite people with a code, propose products,
   vote love / fine / no, and get one proposal per item type that favours agreement over a
   split vote and flags contested choices and budget overruns (`/api/boards`).
+- **A tool-using chat assistant** (Gemini). It can only answer through server-side tools
+  (room plan, product search, a board's group proposal), validates every argument, caps the
+  tool loop, and is rate limited per user (`POST /api/assistant/chat`).
 - **A reproducible evaluation harness** (`eval/`) that scores every method on labelled public
   photos, with unit tests.
 
 ## In progress
 
-Live shop prices, a tool-using chat assistant, and a mobile-first frontend. These are not built yet.
+Live shop prices and a mobile-first frontend. These are not built yet.
 
 ## Layout
 

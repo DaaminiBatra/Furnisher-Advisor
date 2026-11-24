@@ -20,6 +20,10 @@ class Settings(BaseSettings):
         "https://huggingface.co/datasets/daami/furnisher-advisor-catalog/resolve/main/catalog.jsonl"
     )
 
+    # Chat assistant (Gemini via Google AI Studio). Empty key = assistant disabled.
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-flash-latest"
+
     access_token_hours: int = 24
     reset_token_minutes: int = 15
 
