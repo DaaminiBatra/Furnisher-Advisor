@@ -60,9 +60,15 @@ def pseudo_label(root: Path, stems: list[str], out: Path, thr: float, dev: str) 
             w, h = im.size
             with torch.no_grad():
                 inp = proc(text=queries, images=im, return_tensors="pt").to(dev)
-                res = proc.post_process_object_detection(
-                    owl(**inp), threshold=thr, target_sizes=torch.tensor([[max(w, h)] * 2]).to(dev))[0]
-            boxes, scores, labels = res["boxes"], res["scores"], res["labels"]
+                out = owl(**inp)
+                prob = torch.sigmoid(out.logits[0])            # (boxes, queries)
+                scores, labels = prob.max(1)                   # best query per box
+                cxcywh = out.pred_boxes[0]                     # normalised to the padded square
+                side = float(max(w, h))
+                boxes = torch.stack([(cxcywh[:, 0] - cxcywh[:, 2] / 2) * side, (cxcywh[:, 1] - cxcywh[:, 3] / 2) * side,
+                                     (cxcywh[:, 0] + cxcywh[:, 2] / 2) * side, (cxcywh[:, 1] + cxcywh[:, 3] / 2) * side], 1)
+                sel = scores >= thr
+                boxes, scores, labels = boxes[sel], scores[sel], labels[sel]
             if len(boxes):
                 keep = batched_nms(boxes, scores, labels, 0.5)
                 boxes, labels = boxes[keep].cpu().numpy(), labels[keep].cpu().numpy()
