@@ -68,3 +68,34 @@ def test_endpoint_requires_auth_config_and_membership(client, auth_headers):
     finally:
         app.dependency_overrides.pop(get_generate, None)
         app.dependency_overrides.pop(get_catalog, None)
+
+
+def test_gemini_retries_overload_then_falls_back_and_stops_on_fatal(monkeypatch):
+    import urllib.error
+
+    def http(code):
+        return urllib.error.HTTPError("u", code, "x", {}, None)
+
+    calls = []
+
+    def overloaded_then_ok(key, model, contents):
+        calls.append(model)
+        if model != assistant.FALLBACK_MODEL:
+            raise http(503)
+        return {"ok": True}
+
+    monkeypatch.setattr(assistant, "_post", overloaded_then_ok)
+    assert assistant.gemini_generate("k", "gemini-flash-latest", [], sleep=lambda s: None) == {"ok": True}
+    assert calls == ["gemini-flash-latest", "gemini-flash-latest", assistant.FALLBACK_MODEL]
+
+    calls.clear()
+
+    def no_credit(key, model, contents):
+        calls.append(model)
+        raise http(402)
+
+    monkeypatch.setattr(assistant, "_post", no_credit)
+    import pytest
+    with pytest.raises(RuntimeError, match="402"):
+        assistant.gemini_generate("k", "gemini-flash-latest", [], sleep=lambda s: None)
+    assert len(calls) == 1  # fatal errors are not retried

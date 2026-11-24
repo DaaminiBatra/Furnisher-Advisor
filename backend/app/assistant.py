@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable
@@ -99,7 +100,11 @@ def run_tool(name: str, args: dict, catalog, board_decision_fn: Callable[[], dic
         return {"error": f"bad arguments: {e}"}
 
 
-def gemini_generate(api_key: str, model: str, contents: list[dict]) -> dict:
+RETRYABLE = {429, 500, 503}
+FALLBACK_MODEL = "gemini-flash-lite-latest"
+
+
+def _post(api_key: str, model: str, contents: list[dict]) -> dict:
     body = json.dumps({
         "systemInstruction": {"parts": [{"text": SYSTEM}]},
         "contents": contents,
@@ -109,16 +114,30 @@ def gemini_generate(api_key: str, model: str, contents: list[dict]) -> dict:
         f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
         data=body, headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
     )
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            return json.loads(r.read())
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", "replace")[:300]  # error text never contains the key
-        log.error("Gemini HTTP %s for model %s: %s", e.code, model, detail)
-        raise RuntimeError(f"Gemini returned HTTP {e.code}") from None
-    except (urllib.error.URLError, TimeoutError) as e:
-        log.error("Gemini request failed: %s", e)
-        raise RuntimeError("Gemini unreachable") from None
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.loads(r.read())
+
+
+def gemini_generate(api_key: str, model: str, contents: list[dict], sleep=time.sleep) -> dict:
+    """Try the configured model twice, then a lighter fallback model, on overload errors
+    (503/429/500). Other errors (bad key, no credits) fail immediately."""
+    attempts = [model, model] + ([FALLBACK_MODEL] * 2 if model != FALLBACK_MODEL else [])
+    last = "Gemini unreachable"
+    for n, m in enumerate(attempts):
+        try:
+            return _post(api_key, m, contents)
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")[:300]  # error text never contains the key
+            log.error("Gemini HTTP %s for model %s: %s", e.code, m, detail)
+            last = f"Gemini returned HTTP {e.code}"
+            if e.code not in RETRYABLE:
+                break
+        except (urllib.error.URLError, TimeoutError) as e:
+            log.error("Gemini request failed: %s", e)
+            last = "Gemini unreachable"
+        if n < len(attempts) - 1:
+            sleep(1.5)
+    raise RuntimeError(last)
 
 
 def chat(messages: list[dict], generate: Callable[[list[dict]], dict], catalog,
