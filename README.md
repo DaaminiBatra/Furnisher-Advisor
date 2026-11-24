@@ -11,13 +11,19 @@ photo: the real wall colour, the furniture already present, and what fits your b
   K-Means baseline (see `docs/evaluation.md`).
 - **Accounts, favourites and contact** via a FastAPI backend with JWT auth, tests on SQLite
   and Postgres, and a Render blueprint.
+- **Furniture detection beyond COCO.** A YOLOv8s detector distilled from an open-vocabulary
+  model covers 18 furniture types (held-out F1 0.70 against 0.54 for COCO).
+- **A product catalogue and recommender.** About 5,000 furniture products from the public
+  Amazon Berkeley Objects dataset, ranked for the wall colour by explicit colour-harmony
+  rules (CIEDE2000, hue relations, contrast), and a budget planner that picks the best set of
+  missing items for a budget (`POST /api/recommend`). Prices are rough planning ranges,
+  because the open data has no prices (`docs/catalog.md`).
 - **A reproducible evaluation harness** (`eval/`) that scores every method on labelled public
   photos, with unit tests.
 
 ## In progress
 
-Furniture detection beyond the 80 COCO classes, live product catalogue and prices, a
-budget optimiser, shared room boards for group decisions, a tool-using chat assistant,
+Live shop prices, shared room boards for group decisions, a tool-using chat assistant,
 and a mobile-first frontend. These are not built yet.
 
 ## Layout
@@ -25,6 +31,7 @@ and a mobile-first frontend. These are not built yet.
 | Path | Contents |
 |---|---|
 | `backend/` | FastAPI service, models, auth, tests |
+| `catalog/` | Builds the product catalogue from ABO listings |
 | `eval/` | Evaluation code and Kaggle runners |
 | `docs/evaluation.md` | Methods, results and caveats |
 
