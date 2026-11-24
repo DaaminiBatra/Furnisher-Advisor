@@ -2,7 +2,7 @@
 
     python -m catalog.build_catalog --out /kaggle/working/catalog.jsonl [--upload]
 
-Per product: type (one of our room-item names), title, brand, material, style, dimensions,
+Per product (colour = listing colour word, photo measurement as fallback): type (one of our room-item names), title, brand, material, style, dimensions,
 listing colour words, catalogue image URL, a measured dominant colour (trimmed median in
 CIELAB over non-background pixels of the product photo) and the ASIN.  Kept per type:
 at most `--per-type` products, preferring ones with an Indian or US English title and a colour.
@@ -25,6 +25,7 @@ import numpy as np
 from PIL import Image
 
 from .abo import BASE, download, first_value, iter_listings
+from .colour_names import colour_from_words
 
 # ABO product_type -> our room-item name.  Appliances (fridge, oven, dishwasher), TVs and
 # live plants are not furniture in ABO, so they are not in this catalogue.
@@ -97,7 +98,8 @@ def main() -> None:
         ours, it, name, colour, path = row
         img = fetch_image(path)
         rgb = item_colour_rgb(img) if img is not None else None
-        if rgb is None:
+        word_rgb = colour_from_words(colour)
+        if rgb is None and word_rgb is None:
             return None
         dims = it.get("item_dimensions") or {}
         return {
@@ -106,7 +108,8 @@ def main() -> None:
             "material": first_value(it.get("material")), "style": first_value(it.get("style")),
             "dims_cm": {k: round(v["normalized_value"]["value"] * 2.54, 1) for k, v in dims.items()
                         if isinstance(v, dict) and v.get("normalized_value", {}).get("unit") == "inches"},
-            "image": f"{BASE}/images/small/{path}", "rgb": rgb,
+            "image": f"{BASE}/images/small/{path}", "rgb": word_rgb or rgb,
+            "rgb_source": "listing" if word_rgb else "photo", "rgb_photo": rgb,
         }
 
     with ThreadPoolExecutor(16) as ex:
