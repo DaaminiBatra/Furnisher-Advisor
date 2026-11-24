@@ -84,6 +84,34 @@ into a fast furniture-specific detector rather than ship it directly. Television
 0.0 recall for both detectors; it is not being claimed either way until the cause
 (very few positives in this sample, or a labelling mismatch) is checked.
 
+## Distilled furniture detector (student)
+
+A small YOLOv8s detector trained only on boxes produced by the open-vocabulary detector
+(1,500 ADE20K training photos of home interiors; no human box annotations), then scored on
+the same held-out validation photos and with the same presence metric and tuning protocol
+as above (confidence threshold tuned on one half, scored on the other).
+
+| | COCO detector (best case) | Open-vocabulary teacher | Distilled student |
+|---|---|---|---|
+| Recall | 0.45 | 0.81 | 0.71 |
+| Precision | 0.67 | 0.61 | 0.68 |
+| F1 | 0.54 | 0.69 | 0.70 |
+| Model inference | n/a | slow (about 0.5 s per photo with the COCO detector in the same run) | 5.5 ms per photo on a T4 GPU (24 ms including Python overhead) |
+
+The student matches the teacher's F1 with higher precision and lower recall, at a small
+fraction of the cost, and clearly beats the COCO detector. Per-type recall for the student:
+sofa 0.93, chair 0.82, bed 0.93, clock 1.0, vase 0.91, lamp 0.95, rug 0.85, painting 0.80,
+ottoman 0.80, oven 0.83, refrigerator 0.81, dishwasher 0.67, plant 0.63, cabinet 0.57,
+table 0.44, bookshelf 0.28, wardrobe 0.0, television 0.0.
+
+Weak spots, stated plainly: wardrobes are not detected at all, bookshelves and tables are
+poor, and television shows 0.0 (for every detector, so the cause, few positives or a label
+mismatch, is still unchecked and nothing is claimed about it). The student can only learn
+what the teacher labelled, so these gaps are inherited and are the next thing to improve,
+for example with better prompts for wardrobe and bookshelf or a small set of human-checked
+labels. Scores are on ADE20K photos; the student's own validation mAP on teacher labels is
+not reported as accuracy because it measures agreement with the teacher, not with people.
+
 ## Design consequences
 
 - Colour comes from a wall segmentation model, in CIELAB, instead of K-Means over the whole frame.
