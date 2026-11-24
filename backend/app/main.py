@@ -7,7 +7,7 @@ from sqlalchemy import text
 from . import models  # noqa: F401  (registers tables on Base.metadata)
 from .config import get_settings
 from .db import Base, get_engine
-from .routers import auth, contact, favourites
+from .routers import auth, contact, favourites, recommend
 
 
 @asynccontextmanager
@@ -38,6 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/api")
     app.include_router(contact.router, prefix="/api")
     app.include_router(favourites.router, prefix="/api")
+    app.include_router(recommend.router, prefix="/api")
     return app
 
 
