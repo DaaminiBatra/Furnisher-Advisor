@@ -18,13 +18,15 @@ photo: the real wall colour, the furniture already present, and what fits your b
   rules (CIEDE2000, hue relations, contrast), and a budget planner that picks the best set of
   missing items for a budget (`POST /api/recommend`). Prices are rough planning ranges,
   because the open data has no prices (`docs/catalog.md`).
+- **Shared room boards for group decisions.** Invite people with a code, propose products,
+  vote love / fine / no, and get one proposal per item type that favours agreement over a
+  split vote and flags contested choices and budget overruns (`/api/boards`).
 - **A reproducible evaluation harness** (`eval/`) that scores every method on labelled public
   photos, with unit tests.
 
 ## In progress
 
-Live shop prices, shared room boards for group decisions, a tool-using chat assistant,
-and a mobile-first frontend. These are not built yet.
+Live shop prices, a tool-using chat assistant, and a mobile-first frontend. These are not built yet.
 
 ## Layout
 
