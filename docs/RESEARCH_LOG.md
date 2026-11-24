@@ -9,4 +9,7 @@ Dated entries, newest last. Dates are when the work actually happened.
   and Postgres (branch `phase-0-backend`).
 - **2026-11-24** Phase 1: built an evaluation harness and audited v1 on 253 labelled
   ADE20K photos. Findings in `docs/v1-audit.md`.
-- Next: wall/floor segmentation and an open-vocabulary teacher for a furniture detector.
+- **2026-11-24** Phase 2a: v2 wall colour (SegFormer + CIELAB). Median error fell from
+  12.1 to 1.07 (CIEDE2000) on the same 210 photos. Caveat: scored on the dataset the
+  segmenter was trained on; out-of-distribution check still to do.
+- Next: out-of-distribution check of wall colour, then wall/floor segmentation and an open-vocabulary teacher for a furniture detector.

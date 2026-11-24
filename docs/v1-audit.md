@@ -20,6 +20,24 @@ Code: `eval/audit/`, runner: `eval/kaggle/phase1_audit.py`, 23 unit tests.
 | Median wall purity of the chosen cluster | 38% |
 | v1 recommendations for items already present in the photo | 29.7% (415 of 1,396) |
 
+## v2 wall colour on the same photos (2026-11-24)
+
+Same 210 photos, same ground truth (median colour of human-labelled wall pixels,
+CIEDE2000). v2 = SegFormer-B2 (ADE20K) wall mask, then a trimmed median in CIELAB.
+
+| | v1 (K-Means + CSS name) | v2 (segmentation + Lab) |
+|---|---|---|
+| Median error | 12.1 | 1.07 |
+| Mean error | 17.4 | 2.19 |
+| Photos with error > 10 | 61% | 3.3% |
+| Photos with error > 5 | not recorded | 8.1% |
+
+v2 was closer to the labelled wall colour than v1 on 99.0% of photos. v1 figures come from
+the phase 1 run on the identical photo set. The segmentation model was trained on ADE20K,
+the same dataset used for scoring, so this is an optimistic estimate: it must be
+re-checked on photos from outside ADE20K before it is quoted as general accuracy.
+Wall-mask IoU was not captured in this run.
+
 ## What this means for v2
 
 - Colour must come from a wall segmentation model, in CIELAB, not a K-Means over the
