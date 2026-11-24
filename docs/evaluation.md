@@ -56,6 +56,34 @@ than on ADE20K, as expected away from the training distribution, and still far b
 baseline. NYUv2 scenes (homes and offices photographed with a Kinect) overlap in type with
 ADE20K's indoor classes, so this is independent photos, not an entirely different domain.
 
+## Furniture detection: COCO detector vs open-vocabulary detector
+
+Image-level presence of 18 furniture types on ADE20K photos (ground truth: ADE20K labels,
+type present when it covers at least 0.5% of the image). Scored on a held-out half of the
+253 photos; the open-vocabulary threshold (0.25) was tuned on the other half. The COCO
+detector (YOLOv5x, confidence 0.25) is given its best case: its class names are mapped to
+our types directly, which is more generous than the baseline's exact-string matching.
+Open-vocabulary detector: OWLv2 (base), prompted with plain item names, no training.
+
+| | COCO detector (best case) | Open-vocabulary (OWLv2) |
+|---|---|---|
+| Recall | 0.45 | 0.81 |
+| Precision | 0.67 | 0.61 |
+| F1 | 0.54 | 0.69 |
+
+Per-type recall, COCO vs open-vocabulary: sofa 0.97/1.0, chair 0.90/0.90, bed 0.89/0.96,
+refrigerator 0.88/1.0, oven 0.76/0.97, table 0.48/0.56. Types COCO cannot detect at all
+(recall 0.0): lamp, bookshelf, wardrobe, rug, painting, cabinet, ottoman, dishwasher;
+the open-vocabulary detector recovers most of them (lamp 1.0, rug 1.0, ottoman 1.0,
+painting 0.86, dishwasher 0.89, cabinet 0.72, bookshelf 0.44, wardrobe 0.29).
+
+Trade-offs, stated plainly: the open-vocabulary detector is worse on potted plants
+(0.56 vs 0.96) and has slightly lower precision (more false alarms), and it is far
+heavier to run than YOLO. That is why the plan is to use it as a teacher and distil it
+into a fast furniture-specific detector rather than ship it directly. Television shows
+0.0 recall for both detectors; it is not being claimed either way until the cause
+(very few positives in this sample, or a labelling mismatch) is checked.
+
 ## Design consequences
 
 - Colour comes from a wall segmentation model, in CIELAB, instead of K-Means over the whole frame.
