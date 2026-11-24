@@ -9,12 +9,15 @@ is capped.  `generate` is injectable so the whole loop is tested without network
 from __future__ import annotations
 
 import json
+import logging
 import urllib.error
 import urllib.request
 from collections.abc import Callable
 
 from .recommend.plan import PRICE_BANDS, ROOMS, best_set, missing_items
 from .recommend.rank import top_products
+
+log = logging.getLogger(__name__)
 
 SYSTEM = (
     "You are the Furnisher Advisor assistant. Help people furnish a room. Use the tools for "
@@ -110,7 +113,12 @@ def gemini_generate(api_key: str, model: str, contents: list[dict]) -> dict:
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.loads(r.read())
     except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")[:300]  # error text never contains the key
+        log.error("Gemini HTTP %s for model %s: %s", e.code, model, detail)
         raise RuntimeError(f"Gemini returned HTTP {e.code}") from None
+    except (urllib.error.URLError, TimeoutError) as e:
+        log.error("Gemini request failed: %s", e)
+        raise RuntimeError("Gemini unreachable") from None
 
 
 def chat(messages: list[dict], generate: Callable[[list[dict]], dict], catalog,
