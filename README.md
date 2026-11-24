@@ -1,50 +1,52 @@
 # Furnisher Advisor
 
-Upload a photo of a room, understand its colours and furniture, and get recommendations that fit your style and budget.
+Take a photo of a room and get furnishing suggestions grounded in what is actually in the
+photo: the real wall colour, the furniture already present, and what fits your budget.
 
-**Status:** v2 rebuild in progress. See the roadmap below.
+## What it does today
 
-## What's here
+- **Wall colour from real wall pixels.** A segmentation model finds the wall and the colour
+  is estimated in CIELAB (perceptual colour space), then scored with CIEDE2000.
+  On 300 independent NYUv2 photos the median colour error is 1.9, against 17.2 for the
+  K-Means baseline (see `docs/evaluation.md`).
+- **Accounts, favourites and contact** via a FastAPI backend with JWT auth, tests on SQLite
+  and Postgres, and a Render blueprint.
+- **A reproducible evaluation harness** (`eval/`) that scores every method on labelled public
+  photos, with unit tests.
 
-| Path | What |
+## In progress
+
+Furniture detection beyond the 80 COCO classes, live product catalogue and prices, a
+budget optimiser, shared room boards for group decisions, a tool-using chat assistant,
+and a mobile-first frontend. These are not built yet.
+
+## Layout
+
+| Path | Contents |
 |---|---|
-| `backend/` | FastAPI service (auth, contact, saved favourites), tests, Dockerfile |
-| `render.yaml` | Render blueprint for the API |
-| `.github/workflows/ci.yml` | Runs the test suite on SQLite and Postgres |
+| `backend/` | FastAPI service, models, auth, tests |
+| `eval/` | Evaluation code and Kaggle runners |
+| `docs/evaluation.md` | Methods, results and caveats |
 
-The v2 web frontend and the vision/recommendation services are added in later phases.
-
-## Run the backend locally
+## Run the backend
 
 ```bash
 cd backend
-python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-cp .env.example .env        # then set SECRET_KEY (see the comment in the file)
+cp .env.example .env   # set SECRET_KEY (16+ chars) and DATABASE_URL
+pytest
 uvicorn app.main:app --reload
 ```
 
-Interactive API docs: http://localhost:8000/docs
-
-## Tests
+## Run the evaluation
 
 ```bash
-cd backend
-pytest -q                                   # SQLite, in memory
-TEST_DATABASE_URL=postgresql://user:pass@localhost:5432/db pytest -q   # real Postgres
+python -m pytest eval/tests
+# on a Kaggle notebook with internet enabled:
+python -m eval.kaggle.phase2_wall --per-room 60
+python -m eval.kaggle.phase2_nyu --limit 300
 ```
 
-## Deploy (Render)
+## Origin
 
-1. Create a Postgres database on Render and copy its **Internal Database URL**.
-2. New → Blueprint → select this repo (`render.yaml`).
-3. Set `DATABASE_URL`, `CORS_ORIGINS` (your frontend's URL) and `FRONTEND_URL`. `SECRET_KEY` is generated for you.
-4. Check `https://<service>.onrender.com/health`.
-
-## Roadmap
-
-- [x] **Phase 0** — clean FastAPI backend, tests, CI, deploy config
-- [ ] **Phase 1** — evaluation harness and audit of the v1 pipeline
-- [ ] **Phase 2** — perception: open-vocabulary detection, wall/floor segmentation, colour in CIELAB
-- [ ] **Phase 3** — live product catalog, recommender and budget optimizer
-- [ ] **Phase 4** — group decisions, chat assistant, new frontend
+Furnisher Advisor builds on the Personalized Furnishing Advisor, a 2025 BTech major project.
