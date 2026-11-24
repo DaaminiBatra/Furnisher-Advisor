@@ -22,7 +22,12 @@ def load_catalog(source: str) -> tuple[dict, ...]:
 
 
 def top_products(catalog, item_type: str, wall_rgb, k: int = 3) -> list[dict]:
-    scored = [(harmony_score(p["rgb"], wall_rgb), p) for p in catalog if p["type"] == item_type]
+    # Colours taken from the listing's colour word are trusted; those only measured from the
+    # photo (rgb_source == "photo") are noisier, so they rank slightly lower.
+    scored = [
+        (harmony_score(p["rgb"], wall_rgb) * (0.85 if p.get("rgb_source") == "photo" else 1.0), p)
+        for p in catalog if p["type"] == item_type
+    ]
     scored.sort(key=lambda t: -t[0])
     out, seen = [], set()
     for s, p in scored:

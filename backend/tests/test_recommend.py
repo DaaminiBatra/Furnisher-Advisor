@@ -92,3 +92,14 @@ def test_recommend_endpoint(client):
     finally:
         app.dependency_overrides.pop(get_catalog, None)
         assert client.get("/api/recommend/rooms").json()["rooms"]
+
+
+def test_photo_only_colours_rank_slightly_lower(tmp_path):
+    rows = [
+        {"asin": "w", "type": "sofa", "title": "A", "brand": "1", "rgb": [235, 230, 220], "rgb_source": "listing"},
+        {"asin": "p", "type": "sofa", "title": "B", "brand": "2", "rgb": [235, 230, 220], "rgb_source": "photo"},
+    ]
+    f = tmp_path / "c2.jsonl"
+    f.write_text("\n".join(json.dumps(r) for r in rows))
+    out = top_products(load_catalog(str(f)), "sofa", (60, 100, 170), k=2)
+    assert [o["asin"] for o in out] == ["w", "p"]

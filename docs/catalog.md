@@ -22,7 +22,9 @@ Colour measured from the catalogue photo was unreliable: photos sit on off-white
 backgrounds with shadows, and some are lifestyle shots, so measured colours drifted to grey
 (listed-blue sofas measured grey). The listing's own colour word is therefore the primary
 colour (`catalog/colour_names.py`), with the photo measurement kept as `rgb_photo` and used
-only when the word is unknown.
+only when the word is unknown. In the published catalogue 3,681 of 5,287 products (70%) use the
+listing colour; the other 1,606 rely on the noisier photo measurement and rank slightly lower
+(`rgb_source` marks which).
 
 ## Ranking
 

@@ -15,8 +15,10 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://localhost:5173"
     frontend_url: str = "http://localhost:3000"
 
-    # JSON-lines product catalogue (local path or URL); empty = no products, plan only.
-    catalog_source: str = ""
+    # JSON-lines product catalogue (local path or URL); set empty to run without products.
+    catalog_source: str = (
+        "https://huggingface.co/datasets/daami/furnisher-advisor-catalog/resolve/main/catalog.jsonl"
+    )
 
     access_token_hours: int = 24
     reset_token_minutes: int = 15
